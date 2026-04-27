@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  portfolio-app:
+    build: .
+    ports:
+      - "8050:8050"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - MASSIVE_API_KEY=${MASSIVE_API_KEY}
+      - EODHD_API_KEY=${EODHD_API_KEY}
+    volumes:
+      - type: bind
+        source: .
+        target: /app

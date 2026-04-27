@@ -1,0 +1,36 @@
+# --- Security ---
+.env
+
+# --- Version Control ---
+.git/
+.gitignore
+
+# --- Local Environments (CRITICAL) ---
+venv/
+.venv/
+env/
+portfolio_venv/
+
+# --- Python Cache ---
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Editor / OS Files ---
+.DS_Store
+.vscode/
+.idea/
+
+# --- Data & Logs (Prevent Image Bloat) ---
+*.csv
+*.log
+*.sqlite
+*.db
+
+# --- Research / Notebooks ---
+*.ipynb
+.ipynb_checkpoints/
+
+# --- Build Files ---
+Dockerfile
+README.md

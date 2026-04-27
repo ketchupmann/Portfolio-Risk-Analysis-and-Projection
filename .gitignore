@@ -1,0 +1,22 @@
+# --- Python & Environments ---
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+portfolio_venv/
+
+# --- OS Generated Files ---
+.DS_Store
+Thumbs.db
+
+# --- Editor / IDE ---
+.vscode/
+.idea/
+*.swp
+
+# --- Data & Logs (Preventing Bloat) ---
+*.csv
+*.log
+*.sqlite
+*.db
