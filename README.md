@@ -2,7 +2,7 @@
 An institutional-grade portfolio risk analysis dashboard built with Python, Plotly Dash, and Pandas. This engine performs Ex-Ante risk modeling by running 5,000-path Monte Carlo simulations to project portfolio distributions and calculate severe tail-risk metrics.
 
 ## 📊 Live Dashboard
-**[[Insert Your Live Deployment Link Here](https://portfolio-risk-analysis-and-projection.onrender.com/)]**
+**[[Live Link HERE](https://portfolio-risk-analysis-and-projection.onrender.com/)]**
 <img width="1499" height="861" alt="image" src="https://github.com/user-attachments/assets/8e8aff38-2eb0-44cd-af2b-e6a1a2e03348" />
 
 ## 🎯 Core Capabilities
