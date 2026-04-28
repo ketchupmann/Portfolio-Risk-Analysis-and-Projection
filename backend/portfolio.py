@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from backend.asset import Asset
 
@@ -31,15 +32,21 @@ class Portfolio:
     
     def fetch_all_data(self):
         returns_dict = {}
-        for ticker in self.tickers:
+        def fetch_single_asset(ticker):
             asset = Asset(ticker)
             raw_data = asset.fetch_data(years_back=self.years_back)
-            self.assets[ticker] = asset
-
+            
             col_name = 'Close'
             daily_returns = raw_data[col_name].pct_change().dropna()
-        
+            return ticker, asset, daily_returns
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            results = executor.map(fetch_single_asset, self.tickers)
+
+        for ticker, asset, daily_returns in results:
+            self.assets[ticker] = asset
             returns_dict[ticker] = daily_returns
+
         self.returns_df = pd.DataFrame(returns_dict)
         self.returns_df.dropna(inplace=True)
 
@@ -58,12 +65,12 @@ class Portfolio:
         # Expected Annual Return: Dot product of weights and annualized returns
         self.expected_annual_return = np.dot(self.weights, annualized_returns)
     
-        # Annualized Portfolio Volatility (Standard Deviation)
+        # Annualized Portfolio Volatility (std)
         # matrix multiplication accounts for the correlation between assets
         annualized_cov = self.daily_covariance_matrix * 252
         portfolio_variance = np.dot(self.weights.T, np.dot(annualized_cov, self.weights))
     
-        # Volatility is the square root of variance
+        # Volatility - square root of variance
         self.annual_volatility = np.sqrt(portfolio_variance)
 
         # risk metric calculations

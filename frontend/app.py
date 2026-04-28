@@ -2,6 +2,7 @@ import dash
 from dash import dcc, html, Input, Output, State
 import plotly.graph_objects as go
 import numpy as np
+from functools import lru_cache
 
 from backend.portfolio import Portfolio
 from backend.monte_carlo import MonteCarloEngine
@@ -99,9 +100,17 @@ app.layout = html.Div(style={'fontFamily': '"Inter", sans-serif', 'padding': '20
 
             html.Div([
                 html.Label("Time Horizon (Years):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
-                dcc.Slider(id='input-horizon', min=1, max=5, step=1, value=1, marks={i: {'label': f'{i} Yr', 'style': {'color': TEXT_MAIN}} for i in range(1, 6)})
-            ], style={'flex': '1.5', 'paddingBottom': '10px'}),
-
+                dcc.Slider(
+                    id='input-horizon', 
+                    min=1, 
+                    max=5, 
+                    step=1, 
+                    value=1, 
+                    # FIX 1: Add 'whiteSpace': 'nowrap' to the style dict here
+                    marks={i: {'label': f'{i} Yr', 'style': {'color': TEXT_MAIN, 'whiteSpace': 'nowrap'}} for i in range(1, 6)}
+                )
+            # FIX 2: Add 'paddingRight': '15px' and 'paddingLeft': '5px' to the container style
+            ], style={'flex': '1.5', 'paddingBottom': '10px', 'paddingRight': '15px', 'paddingLeft': '5px'}),
             html.Div([
                 html.Button('Run Simulation', id='run-button', n_clicks=0, 
                             style={'width': '100%', 'padding': '12px', 'backgroundColor': CYAN_HEX, 'color': '#0F172A', 'border': 'none', 'borderRadius': '6px', 'cursor': 'pointer', 'fontWeight': 'bold', 'boxShadow': '0 0 10px rgba(0, 229, 255, 0.2)'})
@@ -145,6 +154,19 @@ app.layout = html.Div(style={'fontFamily': '"Inter", sans-serif', 'padding': '20
 ])
 
 # ------------------------------------------------------------------------------
+# SERVER-SIDE MEMOIZATION CACHE
+# ------------------------------------------------------------------------------
+@lru_cache(maxsize=32)
+def get_cached_portfolio(tickers_tuple, weights_tuple, years_back):
+    # Convert tuples back to lists for the Portfolio class
+    tickers = list(tickers_tuple)
+    weights = list(weights_tuple)
+    
+    portfolio = Portfolio(tickers=tickers, weights=weights, years_back=years_back)
+    portfolio.fetch_all_data()
+    return portfolio
+
+# ------------------------------------------------------------------------------
 # App Logic 
 # ------------------------------------------------------------------------------
 @app.callback(
@@ -172,8 +194,12 @@ def update_dashboard(n_clicks, tickers_str, weights_str, capital, rf_rate_pct, h
         if not np.isclose(sum(weights), 1.0):
             return empty_fig, "", f"Error: Weights must sum to 1.0 (Current sum: {sum(weights)})"
 
-        portfolio = Portfolio(tickers=tickers, weights=weights, years_back=3)
-        portfolio.fetch_all_data()
+        # --- CACHED DATA FETCHING ---
+        tickers_tuple = tuple(tickers)
+        weights_tuple = tuple(weights)
+        
+        # This will hit the internet the first time, and RAM every time after that.
+        portfolio = get_cached_portfolio(tickers_tuple, weights_tuple, 3)
         
         portfolio.calculate_portfolio_metrics(rf_rate=rf_rate) 
         
@@ -220,13 +246,12 @@ def update_dashboard(n_clicks, tickers_str, weights_str, capital, rf_rate_pct, h
             }, children=[
                 html.Div(label, style={'color': '#94A3B8', 'fontSize': '12px', 'textTransform': 'uppercase', 'fontWeight': '600', 'letterSpacing': '0.5px'}),
                 
-                # --- THE FIX IS HERE ---
                 html.Div(value, style={
                     'color': color, 
-                    'fontWeight': '500',                   # Sleeker, less aggressive weight
-                    'fontSize': '17px',                    # Bumped up slightly for readability
-                    'fontVariantNumeric': 'tabular-nums',  # Forces perfect vertical alignment
-                    'letterSpacing': '-0.5px'              # Pulls the numbers slightly tighter
+                    'fontWeight': '500',                   
+                    'fontSize': '17px',                    
+                    'fontVariantNumeric': 'tabular-nums',  
+                    'letterSpacing': '-0.5px'              
                 })
             ])
 
