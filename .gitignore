@@ -20,3 +20,5 @@ Thumbs.db
 *.log
 *.sqlite
 *.db
+
+test_api.py

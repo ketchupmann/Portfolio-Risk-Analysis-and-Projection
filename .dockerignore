@@ -34,3 +34,4 @@ __pycache__/
 # --- Build Files ---
 Dockerfile
 README.md
+test_api.py

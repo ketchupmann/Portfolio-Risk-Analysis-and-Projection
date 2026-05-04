@@ -75,7 +75,7 @@ app.layout = html.Div(style={'fontFamily': '"Inter", sans-serif', 'padding': '20
         # Row 1: Core Portfolio Inputs
         html.Div(style={'display': 'flex', 'gap': '20px'}, children=[
             html.Div([
-                html.Label("Tickers (comma separated):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
+                html.Label("Tickers (comma separated, include exchange ID for tickers):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
                 dcc.Input(id='input-tickers', value='AAPL, MSFT', type='text', style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})
             ], style={'flex': '1'}),
             
