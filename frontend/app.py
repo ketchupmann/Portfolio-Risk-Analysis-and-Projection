@@ -115,6 +115,10 @@ app.layout = html.Div(style={'fontFamily': '"Inter", sans-serif', 'padding': '20
 
         # Row 2: Environmental Parameters & Submit
         html.Div(style={'display': 'flex', 'gap': '20px', 'alignItems': 'flex-end'}, children=[
+            html.Div([
+                html.Label("Initial Capital ($):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
+                dcc.Input(id='input-capital', value=100000, type='number', style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})
+            ], style={'flex': '1'}),
             
             html.Div([
                 html.Label("Risk-Free Rate (%):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
