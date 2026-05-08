@@ -78,40 +78,59 @@ app.layout = html.Div(style={'fontFamily': '"Inter", sans-serif', 'padding': '20
         
         # Row 1: Core Portfolio Inputs
         html.Div(style={'display': 'flex', 'flexDirection': 'column', 'gap': '15px'}, children=[
-    html.Label("PORTFOLIO COMPOSITION (Edit table or upload CSV. NOTE: Include Exchange ID's for Tickers. EX: AAPL.US):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'fontSize': '12px'}),
     
-    # Drag and drop CSV area
-    dcc.Upload(
-        id='upload-data',
-        children=html.Div(['Drag and Drop or ', html.A('Select CSV')]),
-        style={
-            'width': '100%', 'height': '60px', 'lineHeight': '60px',
-            'borderWidth': '1px', 'borderStyle': 'dashed',
-            'borderRadius': '5px', 'textAlign': 'center', 'borderColor': CYAN_HEX
-        },
-        multiple=False
-    ),
+            html.Label("PORTFOLIO COMPOSITION (Edit table or upload CSV. NOTE: Include Exchange ID's for Tickers. EX: AAPL.US):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'fontSize': '12px'}),
+            
+            # --- NEW HORIZONTAL WRAPPER ---
+            html.Div(style={'display': 'flex', 'flexDirection': 'row', 'gap': '20px'}, children=[
+                
+                # LEFT SIDE: CSV Upload
+                html.Div(style={'flex': '1', 'display': 'flex'}, children=[
+                    dcc.Upload(
+                        id='upload-data',
+                        children=html.Div(['Drag and Drop or ', html.br(), html.A('Select CSV', style={'color': CYAN_HEX, 'textDecoration': 'underline', 'cursor': 'pointer'})]),
+                        style={
+                            'width': '100%', 'height': '100%', 'minHeight': '110px',
+                            'borderWidth': '1px', 'borderStyle': 'dashed',
+                            'borderRadius': '5px', 'textAlign': 'center', 'borderColor': CYAN_HEX,
+                            'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center',
+                            'flexDirection': 'column'
+                        },
+                        multiple=False
+                    )
+                ]),
 
-    # Editable Data Table
-    dash_table.DataTable(
-        id='portfolio-table',
-        columns=[
-            {'name': 'Ticker', 'id': 'Ticker', 'editable': True},
-            {'name': 'Weight', 'id': 'Weight', 'type': 'numeric', 'editable': True}
-        ],
-        data=[
-            {'Ticker': 'AAPL', 'Weight': 0.6},
-            {'Ticker': 'MSFT', 'Weight': 0.4}
-        ],
-        editable=True,              # Allows users to click and type
-        row_deletable=True,         # Adds an 'x' to delete rows
-        style_header={'backgroundColor': BG_PANEL, 'color': TEXT_MAIN, 'fontWeight': 'bold'},
-        style_data={'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}'},
-    ),
-    
-    # Button to add new empty rows
-    html.Button('Add Asset Row', id='add-row-button', n_clicks=0, 
-                style={'backgroundColor': BG_MAIN, 'color': CYAN_HEX, 'border': f'1px solid {CYAN_HEX}', 'padding': '8px', 'borderRadius': '4px'})
+                # RIGHT SIDE: Data Table and Add Button
+                html.Div(style={'flex': '2', 'display': 'flex', 'flexDirection': 'column', 'gap': '10px'}, children=[
+                    dash_table.DataTable(
+                        id='portfolio-table',
+                        columns=[
+                            {'name': 'Ticker', 'id': 'Ticker', 'editable': True},
+                            {'name': 'Weight', 'id': 'Weight', 'type': 'numeric', 'editable': True}
+                        ],
+                        data=[
+                            {'Ticker': 'AAPL', 'Weight': 0.6},
+                            {'Ticker': 'MSFT', 'Weight': 0.4}
+                        ],
+                        editable=True,              
+                        row_deletable=True,         
+                        style_header={'backgroundColor': BG_PANEL, 'color': TEXT_MAIN, 'fontWeight': 'bold'},
+                        style_data={'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}'},
+                        
+                        # --- FIX: TRANSLUCENT HIGHLIGHT COLOR ---
+                        css=[
+                            # Changes the cell highlight when clicked
+                            {"selector": ".dash-spreadsheet td.focused", "rule": "background-color: rgba(0, 229, 255, 0.2) !important; outline: 1px solid #00E5FF !important;"},
+                            # Changes the actual text input box background when actively typing
+                            {"selector": ".dash-spreadsheet-inner input:not([type=radio]):not([type=checkbox])", "rule": "background-color: rgba(0, 229, 255, 0.2) !important; color: #F8FAFC !important;"}
+                        ]
+                    ),
+                    
+                    # Button moved directly under the table for better flow
+                    html.Button('Add Asset Row', id='add-row-button', n_clicks=0, 
+                                style={'backgroundColor': BG_MAIN, 'color': CYAN_HEX, 'border': f'1px solid {CYAN_HEX}', 'padding': '8px', 'borderRadius': '4px', 'cursor': 'pointer'})
+                ])
+            ])
         ]),
 
         # Row 2: Environmental Parameters & Submit
@@ -331,4 +350,4 @@ def update_dashboard(n_clicks, table_data, capital, rf_rate_pct, horizon_years):
         return empty_fig, "", f"System Error: {str(e)}"
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8051)
+    app.run_server(debug=True, host='0.0.0.0', port=8050)
