@@ -3,6 +3,9 @@ from dash import dcc, html, Input, Output, State
 import plotly.graph_objects as go
 import numpy as np
 from functools import lru_cache
+from dash import dash_table
+import base64
+import io
 
 from backend.portfolio import Portfolio
 from backend.monte_carlo import MonteCarloEngine
@@ -73,21 +76,41 @@ app.layout = html.Div(style={'fontFamily': '"Inter", sans-serif', 'padding': '20
     html.Div(style={'display': 'flex', 'flexDirection': 'column', 'gap': '20px', 'marginBottom': '30px', 'padding': '25px', 'backgroundColor': BG_PANEL, 'borderRadius': '12px', 'border': f'1px solid {BORDER_COLOR}', 'boxShadow': '0 4px 6px rgba(0,0,0,0.3)'}, children=[
         
         # Row 1: Core Portfolio Inputs
-        html.Div(style={'display': 'flex', 'gap': '20px'}, children=[
-            html.Div([
-                html.Label("Tickers (comma separated, include exchange ID for tickers):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
-                dcc.Input(id='input-tickers', value='AAPL, MSFT', type='text', style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})
-            ], style={'flex': '1'}),
-            
-            html.Div([
-                html.Label("Weights (comma separated):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
-                dcc.Input(id='input-weights', value='0.6, 0.4', type='text', style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})
-            ], style={'flex': '1'}),
-            
-            html.Div([
-                html.Label("Initial Capital ($):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
-                dcc.Input(id='input-capital', value=100000, type='number', style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})
-            ], style={'flex': '1'}),
+        html.Div(style={'display': 'flex', 'flexDirection': 'column', 'gap': '15px'}, children=[
+    html.Label("PORTFOLIO COMPOSITION (Edit table or upload CSV. NOTE: Include Exchange ID's for Tickers. EX: AAPL.US):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'fontSize': '12px'}),
+    
+    # Drag and drop CSV area
+    dcc.Upload(
+        id='upload-data',
+        children=html.Div(['Drag and Drop or ', html.A('Select CSV')]),
+        style={
+            'width': '100%', 'height': '60px', 'lineHeight': '60px',
+            'borderWidth': '1px', 'borderStyle': 'dashed',
+            'borderRadius': '5px', 'textAlign': 'center', 'borderColor': CYAN_HEX
+        },
+        multiple=False
+    ),
+
+    # Editable Data Table
+    dash_table.DataTable(
+        id='portfolio-table',
+        columns=[
+            {'name': 'Ticker', 'id': 'Ticker', 'editable': True},
+            {'name': 'Weight', 'id': 'Weight', 'type': 'numeric', 'editable': True}
+        ],
+        data=[
+            {'Ticker': 'AAPL', 'Weight': 0.6},
+            {'Ticker': 'MSFT', 'Weight': 0.4}
+        ],
+        editable=True,              # Allows users to click and type
+        row_deletable=True,         # Adds an 'x' to delete rows
+        style_header={'backgroundColor': BG_PANEL, 'color': TEXT_MAIN, 'fontWeight': 'bold'},
+        style_data={'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}'},
+    ),
+    
+    # Button to add new empty rows
+    html.Button('Add Asset Row', id='add-row-button', n_clicks=0, 
+                style={'backgroundColor': BG_MAIN, 'color': CYAN_HEX, 'border': f'1px solid {CYAN_HEX}', 'padding': '8px', 'borderRadius': '4px'})
         ]),
 
         # Row 2: Environmental Parameters & Submit
@@ -169,39 +192,63 @@ def get_cached_portfolio(tickers_tuple, weights_tuple, years_back):
 # ------------------------------------------------------------------------------
 # App Logic 
 # ------------------------------------------------------------------------------
+# portfolio initializing callback
+@app.callback(
+    Output('portfolio-table', 'data'),
+    [Input('add-row-button', 'n_clicks'),
+     Input('upload-data', 'contents')],
+    [State('portfolio-table', 'data'),
+     State('portfolio-table', 'columns')]
+)
+def update_table(n_clicks, uploaded_file, rows, columns):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return rows
+    
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    # Handle CSV Upload
+    if trigger_id == 'upload-data' and uploaded_file:
+        content_type, content_string = uploaded_file.split(',')
+        decoded = base64.b64decode(content_string)
+        df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+        return df.to_dict('records')
+        
+    # Handle Adding a Row
+    if trigger_id == 'add-row-button':
+        rows.append({c['id']: '' for c in columns})
+        return rows
+        
+    return rows
+
+# sim callback logic
 @app.callback(
     [Output('monte-carlo-graph', 'figure'),
      Output('metrics-output', 'children'),
      Output('error-message', 'children')],
     [Input('run-button', 'n_clicks')],
-    [State('input-tickers', 'value'),
-     State('input-weights', 'value'),
+    [State('portfolio-table', 'data'), 
      State('input-capital', 'value'),
      State('input-rf-rate', 'value'),     
-     State('input-horizon', 'value')]     
+     State('input-horizon', 'value')]    
 )
-def update_dashboard(n_clicks, tickers_str, weights_str, capital, rf_rate_pct, horizon_years):
+def update_dashboard(n_clicks, table_data, capital, rf_rate_pct, horizon_years):
     if n_clicks == 0:
         return dash.no_update, dash.no_update, ""
         
     try:
-        tickers = [t.strip().upper() for t in tickers_str.split(',')]
-        weights = [float(w.strip()) for w in weights_str.split(',')]
         rf_rate = rf_rate_pct / 100.0  
         
-        if len(tickers) != len(weights):
-            return empty_fig, "", "Error: Number of tickers must match number of weights."
-        if not np.isclose(sum(weights), 1.0):
-            return empty_fig, "", f"Error: Weights must sum to 1.0 (Current sum: {sum(weights)})"
+        df = pd.DataFrame(table_data)
+        
+        # check if weights valid
+        total_weight = pd.to_numeric(df['Weight'], errors='coerce').sum()
+        if not np.isclose(total_weight, 1.0):
+             return empty_fig, "", f"Error: Weights must sum to 1.0 (Current sum: {total_weight:.2f})"
 
-        # --- CACHED DATA FETCHING ---
-        tickers_tuple = tuple(tickers)
-        weights_tuple = tuple(weights)
-        
-        # This will hit the internet the first time, and RAM every time after that.
-        portfolio = get_cached_portfolio(tickers_tuple, weights_tuple, 3)
-        
-        portfolio.calculate_portfolio_metrics(rf_rate=rf_rate) 
+        portfolio = Portfolio.from_dataframe(df, years_back=3)
+        portfolio.fetch_all_data()
+        portfolio.calculate_portfolio_metrics(rf_rate=rf_rate)
         
         trading_days = int(horizon_years * 252)
         
@@ -279,4 +326,4 @@ def update_dashboard(n_clicks, tickers_str, weights_str, capital, rf_rate_pct, h
         return empty_fig, "", f"System Error: {str(e)}"
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    app.run_server(debug=True, host='0.0.0.0', port=8051)

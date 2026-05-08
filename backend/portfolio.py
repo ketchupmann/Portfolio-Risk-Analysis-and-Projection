@@ -92,3 +92,21 @@ class Portfolio:
         running_max = cumulative_returns.cummax()
         drawdown = (cumulative_returns / running_max) - 1
         self.max_drawdown = drawdown.min()
+
+    
+    @classmethod
+    def from_dataframe(cls, df, years_back=3):
+        """
+        Factory method to construct a Portfolio directly from a Pandas DataFrame.
+        Expects columns 'Ticker' and 'Weight'.
+        """
+        df = df.dropna(subset=['Ticker', 'Weight'])
+        df['Ticker'] = df['Ticker'].astype(str).str.strip().str.upper()
+        df['Weight'] = pd.to_numeric(df['Weight'], errors='coerce')
+        
+        # 2. Extract to lists
+        tickers = df['Ticker'].tolist()
+        weights = df['Weight'].tolist()
+        
+        # 3. Return a new instance of the class
+        return cls(tickers, weights, years_back)
