@@ -100,6 +100,8 @@ class Portfolio:
         Factory method to construct a Portfolio directly from a Pandas DataFrame.
         Expects columns 'Ticker' and 'Weight'.
         """
+        df['Weight'] = pd.to_numeric(df['Weight'], errors='coerce')
+       
         df = df.dropna(subset=['Ticker', 'Weight'])
         df['Ticker'] = df['Ticker'].astype(str).str.strip().str.upper()
         df['Weight'] = pd.to_numeric(df['Weight'], errors='coerce')

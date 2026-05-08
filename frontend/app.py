@@ -74,94 +74,86 @@ app.layout = html.Div(style={'fontFamily': '"Inter", sans-serif', 'padding': '20
     html.H1("How Cooked is Your Portfolio? - Monte Carlo Simulation", style={'textAlign': 'center', 'color': TEXT_MAIN, 'fontWeight': '300', 'letterSpacing': '1px', 'marginBottom': '30px'}),
     
     # --- CONTROL PANEL ---
-    html.Div(style={'display': 'flex', 'flexDirection': 'column', 'gap': '20px', 'marginBottom': '30px', 'padding': '25px', 'backgroundColor': BG_PANEL, 'borderRadius': '12px', 'border': f'1px solid {BORDER_COLOR}', 'boxShadow': '0 4px 6px rgba(0,0,0,0.3)'}, children=[
+    html.Div(style={'display': 'flex', 'flexDirection': 'row', 'gap': '40px', 'marginBottom': '30px', 'padding': '25px', 'backgroundColor': BG_PANEL, 'borderRadius': '12px', 'border': f'1px solid {BORDER_COLOR}', 'boxShadow': '0 4px 6px rgba(0,0,0,0.3)'}, children=[
         
-        # Row 1: Core Portfolio Inputs
-        html.Div(style={'display': 'flex', 'flexDirection': 'column', 'gap': '15px'}, children=[
-    
+        # --- LEFT COLUMN: Portfolio Composition ---
+        html.Div(style={'flex': '1', 'display': 'flex', 'flexDirection': 'column', 'gap': '15px', 'maxWidth': '500px'}, children=[
             html.Label("PORTFOLIO COMPOSITION (Edit table or upload CSV. NOTE: Include Exchange ID's for Tickers. EX: AAPL.US):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'fontSize': '12px'}),
             
-            # --- NEW HORIZONTAL WRAPPER ---
-            html.Div(style={'display': 'flex', 'flexDirection': 'row', 'gap': '20px'}, children=[
-                
-                # LEFT SIDE: CSV Upload
-                html.Div(style={'flex': '1', 'display': 'flex'}, children=[
-                    dcc.Upload(
-                        id='upload-data',
-                        children=html.Div(['Drag and Drop or ', html.br(), html.A('Select CSV', style={'color': CYAN_HEX, 'textDecoration': 'underline', 'cursor': 'pointer'})]),
-                        style={
-                            'width': '100%', 'height': '100%', 'minHeight': '110px',
-                            'borderWidth': '1px', 'borderStyle': 'dashed',
-                            'borderRadius': '5px', 'textAlign': 'center', 'borderColor': CYAN_HEX,
-                            'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center',
-                            'flexDirection': 'column'
-                        },
-                        multiple=False
-                    )
-                ]),
+            # Top: CSV Upload
+            dcc.Upload(
+                id='upload-data',
+                children=html.Div(['Drag and Drop or ', html.Br(), html.A('Select CSV', style={'color': CYAN_HEX, 'textDecoration': 'underline', 'cursor': 'pointer'})]),
+                style={
+                    'width': '100%', 'minHeight': '80px', 'fontSize': '14px',
+                    'borderWidth': '2px', 'borderStyle': 'dashed',
+                    'borderRadius': '8px', 'textAlign': 'center', 'borderColor': CYAN_HEX,
+                    'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center',
+                    'flexDirection': 'column', 'backgroundColor': 'rgba(0, 229, 255, 0.02)'
+                },
+                multiple=False
+            ),
 
-                # RIGHT SIDE: Data Table and Add Button
-                html.Div(style={'flex': '2', 'display': 'flex', 'flexDirection': 'column', 'gap': '10px'}, children=[
-                    dash_table.DataTable(
-                        id='portfolio-table',
-                        columns=[
-                            {'name': 'Ticker', 'id': 'Ticker', 'editable': True},
-                            {'name': 'Weight', 'id': 'Weight', 'type': 'numeric', 'editable': True}
-                        ],
-                        data=[
-                            {'Ticker': 'AAPL', 'Weight': 0.6},
-                            {'Ticker': 'MSFT', 'Weight': 0.4}
-                        ],
-                        editable=True,              
-                        row_deletable=True,         
-                        style_header={'backgroundColor': BG_PANEL, 'color': TEXT_MAIN, 'fontWeight': 'bold'},
-                        style_data={'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}'},
-                        
-                        # --- FIX: TRANSLUCENT HIGHLIGHT COLOR ---
-                        css=[
-                            # Changes the cell highlight when clicked
-                            {"selector": ".dash-spreadsheet td.focused", "rule": "background-color: rgba(0, 229, 255, 0.2) !important; outline: 1px solid #00E5FF !important;"},
-                            # Changes the actual text input box background when actively typing
-                            {"selector": ".dash-spreadsheet-inner input:not([type=radio]):not([type=checkbox])", "rule": "background-color: rgba(0, 229, 255, 0.2) !important; color: #F8FAFC !important;"}
-                        ]
-                    ),
-                    
-                    # Button moved directly under the table for better flow
-                    html.Button('Add Asset Row', id='add-row-button', n_clicks=0, 
-                                style={'backgroundColor': BG_MAIN, 'color': CYAN_HEX, 'border': f'1px solid {CYAN_HEX}', 'padding': '8px', 'borderRadius': '4px', 'cursor': 'pointer'})
-                ])
+            # Bottom: Data Table and Add Button
+            html.Div(style={'display': 'flex', 'flexDirection': 'column', 'gap': '10px'}, children=[
+                dash_table.DataTable(
+                    id='portfolio-table',
+                    columns=[
+                        {'name': 'Ticker', 'id': 'Ticker', 'editable': True},
+                        {'name': 'Weight', 'id': 'Weight', 'type': 'numeric', 'editable': True}
+                    ],
+                    data=[
+                        {'Ticker': 'AAPL', 'Weight': 0.6},
+                        {'Ticker': 'MSFT', 'Weight': 0.4}
+                    ],
+                    editable=True,              
+                    row_deletable=True,         
+                    style_header={'backgroundColor': BG_PANEL, 'color': TEXT_MAIN, 'fontWeight': 'bold'},
+                    style_data={'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}'},
+                    css=[
+                        {"selector": ".dash-spreadsheet td.focused", "rule": "background-color: rgba(0, 229, 255, 0.2) !important; outline: 1px solid #00E5FF !important;"},
+                        {"selector": ".dash-spreadsheet-inner input:not([type=radio]):not([type=checkbox])", "rule": "background-color: rgba(0, 229, 255, 0.2) !important; color: #F8FAFC !important;"},
+                        {"selector": ".dash-spreadsheet tbody tr:hover", "rule": "background-color: rgba(0, 229, 255, 0.05) !important;"},
+                        {"selector": ".dash-spreadsheet tbody tr:hover td", "rule": "background-color: transparent !important;"}
+                    ]
+                ),
+                
+                html.Button('Add Asset Row', id='add-row-button', n_clicks=0, 
+                            style={'backgroundColor': BG_MAIN, 'color': CYAN_HEX, 'border': f'1px solid {CYAN_HEX}', 'padding': '8px', 'borderRadius': '4px', 'cursor': 'pointer'})
             ])
         ]),
 
-        # Row 2: Environmental Parameters & Submit
-        html.Div(style={'display': 'flex', 'gap': '20px', 'alignItems': 'flex-end'}, children=[
-            html.Div([
-                html.Label("Initial Capital ($):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
-                dcc.Input(id='input-capital', value=100000, type='number', style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})
-            ], style={'flex': '1'}),
+        # --- RIGHT COLUMN: Environmental Parameters ---
+        html.Div(style={'flex': '1', 'display': 'flex', 'flexDirection': 'column', 'justifyContent': 'space-between', 'paddingTop': '25px'}, children=[
+            
+            # Capital and Risk-Free Rate Side-by-Side
+            html.Div(style={'display': 'flex', 'gap': '20px'}, children=[
+                html.Div([
+                    html.Label("Initial Capital ($):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
+                    dcc.Input(id='input-capital', value=100000, type='number', style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})
+                ], style={'flex': '1'}),
+                
+                html.Div([
+                    html.Label("Risk-Free Rate (%):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
+                    dcc.Input(id='input-rf-rate', value=4.5, type='number', step=0.1, style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})
+                ], style={'flex': '1'}),
+            ]),
 
+            # Time Horizon Slider
             html.Div([
-                html.Label("Risk-Free Rate (%):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
-                dcc.Input(id='input-rf-rate', value=4.5, type='number', step=0.1, style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})
-            ], style={'flex': '0.5'}),
-
-            html.Div([
-                html.Label("Time Horizon (Years):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
+                html.Label("Time Horizon (Years):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '15px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
                 dcc.Slider(
                     id='input-horizon', 
-                    min=1, 
-                    max=5, 
-                    step=1, 
-                    value=1, 
-                    # FIX 1: Add 'whiteSpace': 'nowrap' to the style dict here
+                    min=1, max=5, step=1, value=1, 
                     marks={i: {'label': f'{i} Yr', 'style': {'color': TEXT_MAIN, 'whiteSpace': 'nowrap'}} for i in range(1, 6)}
                 )
-            # FIX 2: Add 'paddingRight': '15px' and 'paddingLeft': '5px' to the container style
-            ], style={'flex': '1.5', 'paddingBottom': '10px', 'paddingRight': '15px', 'paddingLeft': '5px'}),
+            ], style={'paddingBottom': '10px', 'paddingRight': '15px', 'paddingLeft': '5px'}),
+            
+            # Big Run Button at the bottom
             html.Div([
                 html.Button('Run Simulation', id='run-button', n_clicks=0, 
-                            style={'width': '100%', 'padding': '12px', 'backgroundColor': CYAN_HEX, 'color': '#0F172A', 'border': 'none', 'borderRadius': '6px', 'cursor': 'pointer', 'fontWeight': 'bold', 'boxShadow': '0 0 10px rgba(0, 229, 255, 0.2)'})
-            ], style={'flex': '0.75'})
+                            style={'width': '100%', 'padding': '15px', 'backgroundColor': CYAN_HEX, 'color': '#0F172A', 'border': 'none', 'borderRadius': '6px', 'cursor': 'pointer', 'fontWeight': 'bold', 'fontSize': '16px', 'boxShadow': '0 0 10px rgba(0, 229, 255, 0.2)'})
+            ])
         ])
     ]),
     
