@@ -2,6 +2,7 @@ import dash
 from dash import dcc, html, Input, Output, State
 import plotly.graph_objects as go
 import numpy as np
+import pandas as pd
 from functools import lru_cache
 from dash import dash_table
 import base64
@@ -119,7 +120,7 @@ app.layout = html.Div(style={'fontFamily': '"Inter", sans-serif', 'padding': '20
                 html.Label("Initial Capital ($):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
                 dcc.Input(id='input-capital', value=100000, type='number', style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})
             ], style={'flex': '1'}),
-            
+
             html.Div([
                 html.Label("Risk-Free Rate (%):", style={'fontWeight': 'bold', 'color': '#94A3B8', 'marginBottom': '8px', 'display': 'block', 'fontSize': '12px', 'textTransform': 'uppercase'}),
                 dcc.Input(id='input-rf-rate', value=4.5, type='number', step=0.1, style={'width': '100%', 'padding': '10px', 'backgroundColor': BG_MAIN, 'color': TEXT_MAIN, 'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '6px', 'outlineColor': CYAN_HEX})

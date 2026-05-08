@@ -10,6 +10,6 @@ services:
       - MASSIVE_API_KEY=${MASSIVE_API_KEY}
       - EODHD_API_KEY=${EODHD_API_KEY}
     volumes:
-      - type: bind
-        source: .
-        target: /app
+      - .:/app
+    env_file:
+      - .env
