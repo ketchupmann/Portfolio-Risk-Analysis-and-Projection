@@ -27,27 +27,28 @@ class MonteCarloEngine:
         weights = self.portfolio.weights
 
         # Cholesky Decomposition
-        # forces the random shocks to respect the historical correlation between your assets
+        # forces the random shocks to respect the historical correlation between assets
         L = np.linalg.cholesky(cov_matrix)
 
         # The Geometric Brownian Motion Loop
-        for t in range(1, self.time_horizon + 1):
-            # Generate pure random shocks (standard normal distribution)
-            Z = np.random.standard_normal((len(weights), self.num_simulations))
-            
-            # Correlate the shocks using the Cholesky matrix
-            correlated_shocks = np.dot(L, Z)
-            
-            # Calculate the daily returns for each asset using GBM
-            daily_returns = np.exp(
-                (mu - 0.5 * np.diag(cov_matrix))[:, None] + correlated_shocks
-            )
-            
-            # Apply the portfolio weights to the simulated asset returns
-            portfolio_daily_return = np.dot(weights, daily_returns)
-            
-            # Calculate the new dollar value of the portfolio for day 't'
-            self.simulated_paths[t] = self.simulated_paths[t - 1] * portfolio_daily_return
+        # pre gen all random shocks for the entire time horizon at once
+        # Shape: (Time_Horizon, Assets, Simulations)
+        Z = np.random.standard_normal((self.time_horizon, len(weights), self.num_simulations))
+        
+        # Correlate shocks across all days simultaneously using Einstein summation
+        # L is (Assets, Assets). Z is (Time, Assets, Simulations).
+        correlated_shocks = np.einsum('ij,tjk->tik', L, Z)
+        
+        # add drift and exponentiate for all days at once
+        # Reshape drift to (1, Assets, 1) to broadcast across Time and Simulations
+        drift = (mu - 0.5 * np.diag(cov_matrix)).reshape(1, len(weights), 1)
+        asset_daily_returns = np.exp(drift + correlated_shocks)
+        
+        # apply portfolio weights across all time steps
+        portfolio_daily_returns = np.einsum('n,tns->ts', weights, asset_daily_returns)
+        
+        # cumulative paths using cumprod and apply initial capital
+        self.simulated_paths[1:] = self.initial_capital * np.cumprod(portfolio_daily_returns, axis=0)
             
         print("Simulation complete.")
         return self.simulated_paths
