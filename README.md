@@ -4,7 +4,7 @@ An institutional-grade portfolio risk analysis dashboard built with Python, Plot
 ## 📊 Live Dashboard
 **[[Live Link HERE](https://portfolio-risk-analysis-and-projection.onrender.com/)]**
 <img width="1499" height="861" alt="image" src="https://github.com/user-attachments/assets/8e8aff38-2eb0-44cd-af2b-e6a1a2e03348" />
-
+This is not live no mo. 
 ## 🎯 Core Capabilities
 * **Historical Baseline Metrics:** Dynamically calculates annualized expected return, volatility, Sharpe ratio, Sortino ratio, and Maximum Drawdown based on 3-year historical daily closes.
 * **Stochastic Forecasting:** Utilizes Geometric Brownian Motion (GBM) within a Monte Carlo framework to project the "Cone of Uncertainty" across custom time horizons (1-5 years).
